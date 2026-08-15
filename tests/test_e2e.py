@@ -8,6 +8,7 @@ ancho completo y marcas de omisión presentes. Necesita el par en→es de Argos
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -32,7 +33,8 @@ def run_cli(input_file: Path, answers: str = "en\nes\n") -> subprocess.Completed
         capture_output=True,
         text=True,
         encoding="utf-8",
-        timeout=900,
+        # En CI un cuelgue no debe comerse el timeout del job entero.
+        timeout=int(os.environ.get("BILINGUE_TEST_TIMEOUT", "900")),
     )
     assert result.returncode == 0, (
         f"exit={result.returncode}\n--- stdout ---\n{result.stdout}"

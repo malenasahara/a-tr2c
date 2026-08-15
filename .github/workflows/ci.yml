@@ -19,6 +19,8 @@ jobs:
     timeout-minutes: 45
     env:
       PYTHONUTF8: "1"
+      PYTHONFAULTHANDLER: "1"
+      BILINGUE_TEST_TIMEOUT: "600"
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +42,28 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install ".[test]"
+
+      # --- sondas temporales de diagnóstico del segfault en macOS Intel ---
+      - name: "Sonda A: traducción directa con OMP_NUM_THREADS=1"
+        if: runner.os == 'macOS'
+        timeout-minutes: 8
+        continue-on-error: true
+        env:
+          OMP_NUM_THREADS: "1"
+        run: |
+          printf 'en\nes\n' | python -m bilingue tests/data/sample-en.txt
+          test -f tests/data/sample-en.bilingue.html && echo "SONDA_A_OK"
+          rm -rf tests/data/sample-en.bilingue.html tests/data/.bilingue-cache
+
+      - name: "Sonda B: traducción directa con OpenMP por defecto"
+        if: runner.os == 'macOS'
+        timeout-minutes: 8
+        continue-on-error: true
+        run: |
+          printf 'en\nes\n' | python -m bilingue tests/data/sample-en.txt
+          test -f tests/data/sample-en.bilingue.html && echo "SONDA_B_OK"
+          rm -rf tests/data/sample-en.bilingue.html tests/data/.bilingue-cache
+      # --------------------------------------------------------------------
 
       - name: Prueba de extremo a extremo (preguntas por stdin)
         run: pytest -q
