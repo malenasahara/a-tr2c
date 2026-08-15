@@ -39,6 +39,10 @@ class Block:
     level: int = 2
     """Solo encabezados: nivel 1-6."""
 
+    translation: str | None = None
+    """Traducción del bloque (la rellena el bucle de traducción; las marcas no
+    se traducen)."""
+
     @property
     def translatable(self) -> bool:
         return self.kind in (Kind.PARAGRAPH, Kind.HEADING)
