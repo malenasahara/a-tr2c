@@ -219,8 +219,47 @@ def ensure_installed(plan: PairPlan, log: Callable[[str], None] = print) -> None
     argos_translate.get_installed_languages.cache_clear()
 
 
-def get_translation(plan: PairPlan):
-    """Objeto de traducción de Argos (composición automática si hay pivote)."""
+def _pair_legs(plan: PairPlan) -> list[tuple[str, str]]:
+    if plan.pivot:
+        return [(plan.source, PIVOT), (PIVOT, plan.target)]
+    return [(plan.source, plan.target)]
+
+
+def _provision_segmenters(plan: PairPlan, log: Callable[[str], None]) -> None:
+    """Actualiza (con red) los recursos de stanza empaquetados en los paquetes
+    del par: los paquetes de Argos traen `resources.json` y modelos de una
+    versión antigua de stanza que la versión instalada no sabe leer con el
+    parche sin descargas. Se hace una única vez, dentro del directorio del
+    paquete, y queda cacheado para siempre (requisito sin conexión)."""
+    import bilingue.offline as offline
+    from argostranslate.sbd import StanzaSentencizer
+
+    installed = argos_pkg.get_installed_packages()
+    for from_code, to_code in _pair_legs(plan):
+        for pkg in installed:
+            if pkg.from_code != from_code or pkg.to_code != to_code:
+                continue
+            stanza_dir = pkg.package_path / "stanza"
+            if not stanza_dir.exists():
+                break
+            log(
+                f"Preparando el segmentador de frases de {from_code}→{to_code} "
+                "(descarga única de recursos de stanza)…"
+            )
+            lang = StanzaSentencizer.LANGUAGE_CODE_MAPPING.get(from_code, from_code)
+            offline.ORIGINAL_PIPELINE(
+                lang=lang,
+                dir=str(stanza_dir),
+                processors="tokenize",
+                logging_level="WARNING",
+            )
+            break
+
+
+def get_translation(plan: PairPlan, log: Callable[[str], None] = print):
+    """Objeto de traducción de Argos (composición automática si hay pivote),
+    ya calentado: el primer uso real del segmentador y del modelo ocurre aquí,
+    con reaprovisionamiento online si los recursos empaquetados no sirven."""
     import bilingue.offline  # noqa: F401  (parche stanza antes del traductor)
     from argostranslate import translate as argos_translate
 
@@ -235,4 +274,19 @@ def get_translation(plan: PairPlan):
             f"No se pudo preparar la traducción {plan.source}→{plan.target} "
             "pese a estar los paquetes instalados."
         )
+
+    try:
+        translation.translate("Hello.")
+    except Exception:
+        # Recursos del segmentador ausentes o en formato antiguo. Con red se
+        # actualizan una única vez; sin red, error claro pidiendo conexión.
+        try:
+            _provision_segmenters(plan, log)
+            translation.translate("Hello.")
+        except Exception as exc:
+            raise BilingueError(
+                "no se pudieron preparar los recursos del segmentador de frases "
+                f"({exc}). Si es la primera traducción con este par, conéctate a "
+                "internet y reintenta; después ya funciona sin conexión."
+            ) from exc
     return translation
