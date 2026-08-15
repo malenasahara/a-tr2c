@@ -17,6 +17,9 @@ dependencies = [
     "pymupdf",
     "tqdm",
     "langdetect",
+    # En macOS Intel, torch quedó congelado en 2.2.2 (última con ruedas
+    # x86_64), compilada contra NumPy 1.x: con NumPy 2 revienta al cargar.
+    'numpy<2; sys_platform == "darwin" and platform_machine == "x86_64"',
 ]
 
 [project.scripts]
