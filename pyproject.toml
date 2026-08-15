@@ -24,6 +24,9 @@ dependencies = [
 
 [project.scripts]
 bilingue = "bilingue.cli:main"
+
+[project.gui-scripts]
+# gui-script: en Windows usa pythonw y no abre una consola parásita.
 bilingue-gui = "bilingue.gui:main"
 
 [project.optional-dependencies]
