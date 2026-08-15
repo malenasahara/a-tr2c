@@ -115,6 +115,19 @@ def parse_language(answer: str, known_names: dict[str, str] | None = None) -> st
     return None
 
 
+def available_language_catalog() -> dict[str, str]:
+    """Código → nombre, de paquetes instalados y del índice ya cacheado en
+    disco. No toca la red (para poblar los desplegables de la GUI)."""
+    installed = argos_pkg.get_installed_packages()
+    available: list[argos_pkg.AvailablePackage] = []
+    if argos_settings.local_package_index.exists():
+        try:
+            available = argos_pkg.get_available_packages()
+        except Exception:
+            available = []
+    return _language_catalog(installed, available)
+
+
 @dataclass
 class PairPlan:
     """Cómo se resolverá el par: directo o por pivote, y qué falta por instalar."""

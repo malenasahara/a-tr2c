@@ -24,7 +24,14 @@ import argostranslate.sbd as sbd
 
 # stanza avisa por consola de ajustes internos de sus procesadores (p. ej.
 # «package default expects mwt»); no aportan nada al usuario de bilingue.
-logging.getLogger("stanza").setLevel(logging.ERROR)
+# Un filtro y no setLevel: stanza resetea el nivel de su logger en cada
+# construcción del Pipeline, pero los filtros sobreviven.
+class _SoloErrores(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        return record.levelno >= logging.ERROR
+
+
+logging.getLogger("stanza").addFilter(_SoloErrores())
 
 # Pipeline original, ANTES del parche: descarga recursos (solo se usa en el
 # aprovisionamiento online de la primera traducción).
