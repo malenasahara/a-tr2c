@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: e2e (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      # ~150 MB del paquete en→es + recursos del segmentador, dentro del
+      # directorio de datos de Argos (rutas XDG en los tres sistemas).
+      - name: Caché de paquetes Argos
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/argos-translate
+          key: argos-en-es-${{ runner.os }}-v1
+
+      - name: Instalación limpia
+        run: |
+          python -m pip install --upgrade pip
+          pip install ".[test]"
+
+      - name: Prueba de extremo a extremo (preguntas por stdin)
+        run: pytest -q
+
+  offline:
+    name: offline (ubuntu, unshare -n)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Caché de paquetes Argos
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/argos-translate
+          key: argos-en-es-Linux-v1
+
+      - name: Instalación limpia
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+
+      - name: Aprovisionamiento online (par en→es y segmentador)
+        run: |
+          printf 'en\nes\n' | python -m bilingue tests/data/sample-en.txt
+          test -f tests/data/sample-en.bilingue.html
+          rm -f tests/data/sample-en.bilingue.html
+
+      - name: Traducción sin red (namespace de red vacío)
+        run: |
+          printf 'en\nes\n' | sudo unshare -n env "HOME=$HOME" "PATH=$PATH" python -m bilingue tests/data/sample-en.txt
+          test -f tests/data/sample-en.bilingue.html
+          grep -q 'Traducción (es)' tests/data/sample-en.bilingue.html
