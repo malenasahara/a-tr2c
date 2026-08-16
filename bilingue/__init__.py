@@ -4,7 +4,7 @@ import os
 import platform
 import sys
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 # Segmentador de frases: MiniSBD (modelos ONNX de ~0,2 MB por idioma) en vez
 # de la pila stanza/torch. Debe fijarse ANTES de cualquier import de
