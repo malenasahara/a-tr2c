@@ -32,6 +32,8 @@ bilingue-gui = "bilingue.gui:main"
 
 [project.optional-dependencies]
 test = ["pytest"]
+# Solo para construir el paquete autocontenido (packaging/bilingue.spec).
+build = ["pyinstaller>=6.11,<7"]
 
 [tool.setuptools]
 packages = ["bilingue", "bilingue.extract"]
