@@ -36,7 +36,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.local/share/argos-translate
-          key: argos-en-es-${{ runner.os }}-v1
+          key: argos-en-es-${{ runner.os }}-v2
 
       - name: Instalación limpia
         run: |
@@ -63,7 +63,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.local/share/argos-translate
-          key: argos-en-es-Linux-v1
+          key: argos-en-es-Linux-v2
 
       - name: Instalación limpia
         run: |

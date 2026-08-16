@@ -6,6 +6,14 @@ import sys
 
 __version__ = "0.1.0"
 
+# Segmentador de frases: MiniSBD (modelos ONNX de ~0,2 MB por idioma) en vez
+# de la pila stanza/torch. Debe fijarse ANTES de cualquier import de
+# argostranslate: settings lee ARGOS_CHUNK_TYPE en el momento del import (los
+# imports pesados del paquete son perezosos, así que basta con hacerlo aquí).
+# setdefault permite forzar otro modo por entorno, p. ej.
+# ARGOS_CHUNK_TYPE=STANZA en una instalación con pip.
+os.environ.setdefault("ARGOS_CHUNK_TYPE", "MINISBD")
+
 if sys.platform == "darwin" and platform.machine() == "x86_64":
     # torch (vía stanza) y ctranslate2 empaquetan cada uno su propio libomp;
     # en macOS Intel esa duplicación segfaultea al construir el Translator de

@@ -245,6 +245,11 @@ def _provision_segmenters(plan: PairPlan, log: Callable[[str], None]) -> None:
     parche sin descargas. Se hace una única vez, dentro del directorio del
     paquete, y queda cacheado para siempre (requisito sin conexión)."""
     import bilingue.offline as offline
+
+    if offline.ORIGINAL_PIPELINE is None:
+        # Modo MiniSBD (o stanza ausente): no hay recursos de stanza que
+        # preparar; el modelo MiniSBD lo descarga el propio warm-up.
+        return
     from argostranslate.sbd import StanzaSentencizer
 
     installed = argos_pkg.get_installed_packages()
