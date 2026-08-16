@@ -117,10 +117,12 @@ la ventana a media traducción no pierde nada (mismo checkpoint que la CLI).
 - **PDF con menor fidelidad**: se extrae la capa de texto y la división en
   párrafos es heurística; las páginas escaneadas (sin capa de texto) se
   omiten con aviso — no hay OCR. Para libros, mejor EPUB si existe.
-- **macOS Intel traduce en un solo hilo** por defecto: torch y ctranslate2
-  empaquetan cada uno su runtime OpenMP y la duplicación provoca violaciones
-  de segmento; la app fija `OMP_NUM_THREADS=1` (más lento pero estable; se
-  puede sobreescribir exportando la variable, bajo tu responsabilidad).
+- **macOS Intel con pip traduce en un solo hilo** por defecto: torch y
+  ctranslate2 empaquetan cada uno su runtime OpenMP y la duplicación provoca
+  violaciones de segmento; con torch presente la app fija
+  `OMP_NUM_THREADS=1` (más lento pero estable; se puede sobreescribir
+  exportando la variable, bajo tu responsabilidad). El paquete autocontenido
+  no incluye torch y traduce multihilo.
 - **Obra derivada**: una edición bilingüe de una obra con copyright es obra
   derivada. Esta app es una herramienta general; el uso queda bajo la
   responsabilidad de quien la usa.

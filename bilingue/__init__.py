@@ -19,5 +19,9 @@ if sys.platform == "darwin" and platform.machine() == "x86_64":
     # en macOS Intel esa duplicación segfaultea al construir el Translator de
     # ctranslate2 (verificado con faulthandler en CI, translate.py:189).
     # Un solo hilo OpenMP lo evita; exporta OMP_NUM_THREADS para forzar otro
-    # valor bajo tu responsabilidad.
-    os.environ.setdefault("OMP_NUM_THREADS", "1")
+    # valor bajo tu responsabilidad. Sin torch (paquete autocontenido) solo
+    # queda la libomp de ctranslate2 y no hace falta el tope: multihilo.
+    import importlib.util
+
+    if importlib.util.find_spec("torch") is not None:
+        os.environ.setdefault("OMP_NUM_THREADS", "1")
