@@ -27,8 +27,13 @@ EPUB_HEADINGS = 3
 
 
 def run_cli(input_file: Path, answers: str = "en\nes\n") -> subprocess.CompletedProcess[str]:
+    # Con BILINGUE_E2E_EXE la misma suite prueba el ejecutable congelado
+    # (PyInstaller) en vez del intérprete del venv: una sola ruta, sin parseo
+    # de comandos, para evitar líos de comillas en Windows.
+    frozen = os.environ.get("BILINGUE_E2E_EXE")
+    command = [frozen] if frozen else [sys.executable, "-m", "bilingue"]
     result = subprocess.run(
-        [sys.executable, "-m", "bilingue", str(input_file)],
+        [*command, str(input_file)],
         input=answers,
         capture_output=True,
         text=True,
