@@ -111,3 +111,48 @@ bilingue-gui
 formato y volumen y preselecciona `en` como origen; con destino `es`, el
 botón «Traducir» completa con barra de progreso y «Abrir HTML» muestra el
 resultado en el navegador.
+
+## 7. Paquete autocontenido (sin Python)
+
+Verificación de los zips de la Release en máquinas sin Python ni venv.
+Independiente de los pasos anteriores (usa su propia copia del TXT de
+muestra; descárgalo de
+`https://raw.githubusercontent.com/malenasahara/a-tr2c/main/tests/data/sample-en.txt`
+o copia cualquier TXT corto en inglés).
+
+### 7a. Windows 11
+
+1. Descarga `bilingue-<versión>-windows-x64.zip` de la Release y
+   descomprímelo (~215 MB). No actives ningún venv.
+2. Si SmartScreen avisa al ejecutar: «Más información» → «Ejecutar de todas
+   formas» (binario sin firmar; esperado).
+3. En una terminal, dentro de la carpeta descomprimida:
+   `.\bilingue.exe C:\ruta\al\sample-en.txt` — responde `en` y `es`.
+   **Esperado:** igual que el paso 2 (8 párrafos, HTML junto al TXT,
+   `Avisos: ninguno`); primera vez con descarga de ~150 MB si este equipo
+   nunca tuvo el par en→es.
+4. **Sin conexión**: borra el HTML, desactiva la Wi-Fi, repite el comando.
+   **Esperado:** completa igual, sin errores. Reactiva la red.
+5. **Interrupción**: con el fichero largo del paso 5, `.\bilingue.exe
+   humo-largo.txt`, Ctrl+C a mitad y relanza. **Esperado:** «Reanudando
+   desde el checkpoint» y HTML completo al final.
+6. **GUI**: doble clic en `bilingue-gui.exe`. **Esperado:** se abre la
+   ventana SIN ninguna consola detrás; traduce el TXT igual que en el
+   paso 6 y «Abrir HTML» funciona.
+
+### 7b. Mac Intel
+
+1. Comprueba la versión del sistema: `sw_vers -productVersion` debe ser
+   **13 o superior** (Ventura). Con macOS 12 o anterior el paquete no puede
+   funcionar (ruedas Intel de onnxruntime); anótalo y para aquí.
+2. Descarga `bilingue-<versión>-macos-x86_64.zip`, descomprímelo y libera la
+   cuarentena de Gatekeeper (una sola vez):
+   `xattr -dr com.apple.quarantine bilingue/`.
+3. Desde Terminal: `./bilingue/bilingue /ruta/al/sample-en.txt` — responde
+   `en` y `es`. **Esperado:** igual que en Windows (8 párrafos, HTML junto
+   al TXT).
+4. Repite los pasos 4–6 de 7a (sin conexión, interrupción, GUI; la GUI se
+   lanza con `./bilingue/bilingue-gui`).
+5. **Si una traducción fallara o se colgara en este Mac**: reintenta con
+   `OMP_NUM_THREADS=1 ./bilingue/bilingue …` y anota la diferencia (en el
+   paquete sin torch no debería hacer falta).
